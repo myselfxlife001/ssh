@@ -1,0 +1,38 @@
+name: Temporary SSH
+
+on:
+  workflow_dispatch:
+
+jobs:
+  shell:
+    runs-on: ubuntu-latest
+    timeout-minutes: 66
+
+    steps:
+      - name: Start SSH server
+        run: |
+          sudo systemctl start ssh
+          sudo systemctl status ssh
+
+      - name: Setup runner SSH login
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          echo "${{ secrets.RUNNER_PUBLIC_KEY }}" >> ~/.ssh/authorized_keys
+          chmod 600 ~/.ssh/authorized_keys
+
+      - name: Setup server SSH key
+        run: |
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/gitsrv
+          chmod 600 ~/.ssh/gitsrv
+
+      - name: Reverse SSH
+        run: |
+          ssh -N \
+            -i ~/.ssh/gitsrv \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=no \
+            -o ServerAliveInterval=30 \
+            -o ExitOnForwardFailure=yes \
+            -R 0.0.0.0:9696:localhost:22 \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}
