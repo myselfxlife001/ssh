@@ -28,7 +28,7 @@ jobs:
 
       - name: Reverse SSH
         run: |
-          ssh -N \
+          ssh -vvv -N \
             -i ~/.ssh/gitsrv \
             -o IdentitiesOnly=yes \
             -o StrictHostKeyChecking=no \
